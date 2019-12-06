@@ -4,7 +4,7 @@ This is a baseball game using pygame and gamebox, a wrapper created by Luther Ty
 ## Getting Started
 Please feel free to download this game, and play on your own machine. In order to do this, you need a Python 3 interpreter and need to install the pygame package into that project. Run the following command in your terminal in order to download the appropriate package:
 ```
-pip install pygame. 
+pip install pygame
 ```
 In addition, it is crucial that the gamebox.py file and other images remain in the same folder as the rest of the game material. 
 
