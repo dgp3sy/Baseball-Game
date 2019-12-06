@@ -2,6 +2,10 @@
 This is a baseball game using pygame and gamebox, a wrapper created by Luther Tychonievich at the University of Virginia
 ![This is a sample of the gameplay](https://github.com/dgp3sy/Baseball-Game/blob/master/sample_run_screenshot.PNG)
 
+## Getting Started
+Please feel free to download this game, and play on your own machine. In order to do this, you need a Python 3 interpreter and need to install the pygame package into that project. Run the following command in your terminal in order to download the appropriate package:
+pip install pygame. In addition, it is crucial that the gamebox.py file and other images remain in the same folder as the rest of the game material. 
+
 ## Controls
 Pitching: To have the computer pitch the ball, press the "A" key. <br />
 Batting: In order to swing the bat, press Space. If the bat hits the ball, then you will see animation for the ball entering the field of play
