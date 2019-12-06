@@ -1,6 +1,6 @@
 # Baseball-Game
 This is a baseball game using pygame and gamebox, a wrapper created by Luther Tychonievich at the University of Virginia
-![This is a sample of the gameplay](sample_run_screenshot.png)
+![This is a sample of the gameplay](https://github.com/dgp3sy/Baseball-Game/blob/master/sample_run_screenshot.PNG)
 
 ## Controls
 Pitching: To have the computer pitch the ball, press the "A" key. <br />
