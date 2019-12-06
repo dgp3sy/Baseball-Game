@@ -2,7 +2,7 @@
 This is a baseball game using pygame and gamebox, a wrapper created by Luther Tychonievich at the University of Virginia
 
 ## Controls
-Pitching: To have the computer pitch the ball, press the "A" key. \n
+Pitching: To have the computer pitch the ball, press the "A" key. <br />
 Batting: In order to swing the bat, press Space. If the bat hits the ball, then you will see animation for the ball entering the field of play
 
 ## A Note from the Author
