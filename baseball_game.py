@@ -57,7 +57,8 @@ pitcher_has_ball = True
 determine_hit = False
 ball_in_play = False
 defense_has_ball = False
-
+new_at_bat = True
+hit_frames=0
 # metrics for game
 outs = 0
 strikes = 0
@@ -67,6 +68,13 @@ inning = 1
 metrics = {
     "outs" : 0, "strikes" : 0, "balls": 0, "runs": 0, "inning" : 0
 }
+hit_power_bar = gamebox.from_color(135, 460, "red", 100, 10)
+hit_distance_bar = gamebox.from_color(135, 480, "yellow", 100, 10)
+power_slider = gamebox.from_color(hit_power_bar.x - hit_power_bar.width/2, hit_power_bar.y, "black", 5, 10)
+distance_slider = gamebox.from_color(hit_distance_bar.x - hit_distance_bar.width/2, hit_distance_bar.y, "black", 5, 10)
+slider_speed = 3
+has_pressed_space_1=False
+has_pressed_space_2=False
 
 
 def draw_metrics():
@@ -81,98 +89,27 @@ def draw_metrics():
         metrics["outs"] = 0
     at_bat_draw = gamebox.from_text(425, 450, str(metrics["strikes"]) + " - " + str(metrics["balls"]), 24, "white")
     runs_draw = gamebox.from_text(75, 400, "Score: " + str(metrics["runs"]), 24, "white")
-    inning_draw = gamebox.from_text(75, 450, "Inning: " + str(metrics["inning"]), 24, "white")
+    inning_draw = gamebox.from_text(75, 420, "Inning: " + str(metrics["inning"]), 24, "white")
     for item in outs_circle_list:
         camera.draw(item)
     camera.draw(out_draw)
     camera.draw(at_bat_draw)
     camera.draw(runs_draw)
     camera.draw(inning_draw)
+    hit_distance_label = gamebox.from_text(hit_distance_bar.x - 95, hit_distance_bar.y, "Distance:", 24, "white")
+    hit_power_label = gamebox.from_text(hit_power_bar.x - 85, hit_power_bar.y, "Power:", 24, "white")
+    camera.draw(hit_distance_label)
+    camera.draw(hit_power_label)
+    camera.draw(hit_power_bar)
+    camera.draw(hit_distance_bar)
+    camera.draw(distance_slider)
+    camera.draw(power_slider)
 def draw_list(obj_list):
     for base in obj_list:
         camera.draw(base)
-def new_hit(power):
-    xspeed = random.randint(-5,5)
-    yspeed = power
-    if xspeed == 0:
-        xspeed = 1
-    ## FOR DEBUGING: MAKE IT A HIT EVERY TIME
-    xspeed=2
-
-    return xspeed, yspeed
-def pitch_ball():
-    # TODO : There is a bug where if the ball is batted to the pitcher, then it is just a normal boring hit right back to him
-    global is_pitch, catcher_has_ball, is_return_pitch, await_return, return_ball, pitcher_has_ball, determine_hit, hit_power
-    if is_pitch and ball.y < catcher.y:
-        ball.y += 7
-    if ball.y >= catcher.y:
-        is_pitch = False
-        catcher_has_ball = True
-    if catcher_has_ball:
-        await_return += 1
-        hit_power = 10
-        if await_return % 25 == 0:
-            return_ball = True
-        if return_ball and ball.y > pitcher.y:
-            ball.y -= 3
-        if ball.y <= pitcher.y:
-            # reset flags for next pitch
-            await_return=0
-            catcher_has_ball=False
-            return_ball=False
-            pitcher_has_ball=True
-def batting(keys):
-    global is_pitch, is_hit, ball_hit_type, pitcher_has_ball, determine_hit, ball_in_play, defense_has_ball, hit_power
-    global x_speed, y_speed
-
-    is_batting=False
-    if pygame.K_SPACE in keys:
-        camera.draw(bat)
-        is_batting=True
-    if is_batting and ball.touches(bat):
-        is_pitch=False
-        is_hit=True
-    if is_hit:
-        is_hit=False
-        pitcher_has_ball=False
-        determine_hit = True
-
-    if not pitcher_has_ball and determine_hit:
-        x_speed, y_speed = new_hit(hit_power)
-        determine_hit = False
-        hit_power = 10
-    if not pitcher_has_ball and not defense_has_ball:
-        ball_in_play = True
-        ball.x += x_speed
-        ball.y -= y_speed
-    if not pitcher_has_ball:
-        batter_movement(keys)
-    if pitcher_has_ball and (batter.x, batter.y) != (270, 440):
-        return_batter_to_mound()
 def return_batter_to_mound():
     batter.x = 270
     batter.y = 440
-def ball_off_screen_check():
-    global pitcher_has_ball, ball_in_play, hit_power
-    # HIT!!
-    if (ball.x < 0 and ball.y < 200) or (ball.x > 512 and ball.y < 204) or (ball.y < -20):
-        # new batter comes to mound when batter gets to first
-        if batter.touches(first_base):
-            if len(basemen) < 3:
-                basemen.append(gamebox.from_color(390, 275, "red", 10, 10))
-            ball.x = 259
-            ball.y = 295
-            pitcher_has_ball=True
-            ball_in_play = False
-        hit_power = 10
-    elif(ball.x < 0) or ball.x > 512 or ball.y > 522:
-        hit_power = 10
-        ball.x = 259
-        ball.y = 295
-        pitcher_has_ball=True
-        ball_in_play = False
-        if (metrics["strikes"] != 2):
-            metrics["strikes"] += 1
 def offense():
     global ball_in_play
     if ball_in_play:
@@ -189,28 +126,6 @@ def offense():
                 basemen.remove(basemen[0])
                 metrics["runs"] += 1
     # move basemen[len(basemen)-1] to first base - probably implement this with a stack
-def defense(player_list):
-    # TODO : Need to work on player defense
-    global ball_in_play, pitcher_has_ball, defense_has_ball, is_pitch
-    if ball_in_play:
-        for player in player_list:
-            if player.touches(ball):
-                ball.x += 0
-                ball.y += 0
-                defense_has_ball=True
-                metrics["outs"] += 1
-    if defense_has_ball:
-        if ball.y < pitcher.y:
-            ball.y += 3
-        if ball.y > pitcher.y:
-            ball.y -= 3
-        if ball.x < pitcher.x:
-            ball.x += 3
-        if ball.x > pitcher.x:
-            ball.x -= 3
-        if abs(ball.y - pitcher.y) <= 3 and abs(ball.x - pitcher.x) <= 3:
-            pitcher_has_ball=True
-            ball_in_play = False
 def move_toward(leader, follower, speed):
     if abs(follower.x - leader.x) <= 5 and abs(follower.y - leader.y) <= 5:
         # Close enough: do nothing
@@ -245,33 +160,90 @@ def batter_movement(keys):
         batter.x += 2
     if pygame.K_DOWN in keys:
         batter.y += 2
-def tick(keys):
-    global frames, is_pitch, catcher_has_ball, is_return_pitch, pitcher_has_ball, hit_power
+def slider_movement(slider, bar):
+    global slider_speed
+    if slider.x < 85:
+        slider_speed *= -1
+    if slider.x >  185:
+        slider_speed *= -1
 
-    camera.clear("black")
-    if pitcher_has_ball and pygame.K_a in keys:
-        is_pitch = True
-    if pygame.K_SPACE in keys:
-        # decrease hit power
-        if hit_power > 0:
-            hit_power -= 3
-
-
-    # defense(fielders)
-    offense()
-
-    ball_off_screen_check()
-    pitch_ball()
-    frames+=1
+    slider.speedx = slider_speed
+    slider.move_speed()
+def draw_everything():
+    camera.draw(second_base_player)
     camera.draw(background)
     draw_list(bases)
     draw_list(players)
     draw_list(basemen)
     draw_metrics()
-    batting(keys)
-
     camera.draw(ball)
+
+def normalize_to_range(val, new_min, new_max):
+    # NewValue = (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
+    return (((val - 86) * (new_max -new_min)) / (186 - 86)) + new_min
+
+def animate_hit(keys, power, distance):
+    camera.clear("black")
+    ball.y -= normalize_to_range(power, 1, 5)
+    ball.x += normalize_to_range(distance, -15, 15)
+    draw_everything()
+    for player in fielders:
+        if ball.touches(player):
+            print("here")
+
+
     camera.display()
+def animate_pitch(keys, pitch_speed):
+    global has_pressed_space_2, has_pressed_space_1, new_at_bat, is_hit, hit_frames
+    camera.clear("black")
+    draw_everything()
+
+    if not is_hit:
+        if pygame.K_SPACE in keys:
+            camera.draw(bat)
+            if ball.touches(bat):
+                is_hit = True
+        ball.y += 3
+    else:
+        # hit_frames=0
+        animate_hit(keys, power_slider.x, distance_slider.x)
+
+
+
+
+    camera.display()
+
+def tick(keys):
+    global frames, is_pitch, catcher_has_ball, is_return_pitch, pitcher_has_ball, hit_power, new_at_bat
+    global has_pressed_space_1, has_pressed_space_2
+
+    if new_at_bat:
+        camera.clear("black")
+        if has_pressed_space_1 and has_pressed_space_2:
+            new_at_bat = False
+        if pygame.K_s in keys and has_pressed_space_1 and not has_pressed_space_2:
+            has_pressed_space_2 = True
+        if pygame.K_a in keys and not has_pressed_space_1 and not has_pressed_space_2:
+            has_pressed_space_1 = True
+        if not has_pressed_space_1 and not has_pressed_space_2:
+            slider_movement(power_slider, hit_power_bar)
+        if not has_pressed_space_2 and has_pressed_space_1:
+            slider_movement(distance_slider, hit_distance_bar)
+
+
+        offense()
+        frames += 1
+        draw_everything()
+        camera.display()
+
+    else:
+        animate_pitch(keys, random.randint(5, 15))
+
+
+
+
+    # defense(fielders)
+
 
     # Cursor location used for game creation
     # if frames % 10 == 0:
