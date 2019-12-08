@@ -33,6 +33,7 @@ fielders = [
     first_base_player, second_base_player, shortstop, third_base_player,
     left_field, right_field, center_field
 ]
+basemen = []
 
 bat=gamebox.from_color(260, 440, "orange", 15,4)
 ball=gamebox.from_image(259, 295, "baseball_transparent.png")
@@ -153,11 +154,15 @@ def ball_off_screen_check():
     global pitcher_has_ball, ball_in_play
     # HIT!!
     if (ball.x < 0 and ball.y < 200) or (ball.x > 512 and ball.y < 204) or (ball.y < -20):
-        ball.x = 259
-        ball.y = 295
-        pitcher_has_ball=True
-        ball_in_play = False
-        metrics["runs"] += 1
+        # new batter comes to mound when batter gets to first
+        if batter.touches(first_base):
+            if len(basemen) == 0:
+                basemen.append(gamebox.from_color(390, 275, "red", 10, 10))
+            ball.x = 259
+            ball.y = 295
+            pitcher_has_ball=True
+            ball_in_play = False
+            metrics["runs"] += 1
     # Foul ball
     elif(ball.x < 0) or ball.x > 512 or ball.y > 522:
         ball.x = 259
@@ -223,6 +228,7 @@ def tick(keys):
     camera.draw(background)
     draw_list(bases)
     draw_list(players)
+    draw_list(basemen)
     draw_metrics()
     batting(keys)
 
