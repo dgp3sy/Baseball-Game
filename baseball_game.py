@@ -151,11 +151,21 @@ def return_batter_to_mound():
 
 def ball_off_screen_check():
     global pitcher_has_ball, ball_in_play
-    if ball.x < -10 or ball.x > 522 or ball.y < -10 or ball.y > 522:
+    # HIT!!
+    if (ball.x < 0 and ball.y < 200) or (ball.x > 512 and ball.y < 204) or (ball.y < -20):
         ball.x = 259
         ball.y = 295
         pitcher_has_ball=True
         ball_in_play = False
+        metrics["runs"] += 1
+    # Foul ball
+    elif(ball.x < 0) or ball.x > 512 or ball.y > 522:
+        ball.x = 259
+        ball.y = 295
+        pitcher_has_ball=True
+        ball_in_play = False
+        if (metrics["strikes"] != 2):
+            metrics["strikes"] += 1
 
 def defense(player_list):
     global ball_in_play, pitcher_has_ball, defense_has_ball, is_pitch
@@ -219,6 +229,9 @@ def tick(keys):
     camera.draw(ball)
     camera.display()
 
+    # Cursor location used for game creation
+    # if frames % 10 == 0:
+    #     print(pygame.mouse.get_pos())
 
 
 
