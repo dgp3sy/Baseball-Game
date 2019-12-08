@@ -45,7 +45,7 @@ background.scale_by(0.5)
 x_speed = 0
 y_speed = 0
 frames = 0
-hit_power = 20
+hit_power = 10
 await_return=0
 ball_hit_type=-1
 is_pitch = False
@@ -97,8 +97,7 @@ def new_hit(power):
     if xspeed == 0:
         xspeed = 1
     ## FOR DEBUGING: MAKE IT A HIT EVERY TIME
-    # xspeed=1
-    # yspeed=4
+    xspeed=2
 
     return xspeed, yspeed
 def pitch_ball():
@@ -111,7 +110,7 @@ def pitch_ball():
         catcher_has_ball = True
     if catcher_has_ball:
         await_return += 1
-        hit_power = 20
+        hit_power = 10
         if await_return % 25 == 0:
             return_ball = True
         if return_ball and ball.y > pitcher.y:
@@ -141,7 +140,7 @@ def batting(keys):
     if not pitcher_has_ball and determine_hit:
         x_speed, y_speed = new_hit(hit_power)
         determine_hit = False
-        hit_power = 20
+        hit_power = 10
     if not pitcher_has_ball and not defense_has_ball:
         ball_in_play = True
         ball.x += x_speed
@@ -154,7 +153,7 @@ def return_batter_to_mound():
     batter.x = 270
     batter.y = 440
 def ball_off_screen_check():
-    global pitcher_has_ball, ball_in_play
+    global pitcher_has_ball, ball_in_play, hit_power
     # HIT!!
     if (ball.x < 0 and ball.y < 200) or (ball.x > 512 and ball.y < 204) or (ball.y < -20):
         # new batter comes to mound when batter gets to first
@@ -165,8 +164,9 @@ def ball_off_screen_check():
             ball.y = 295
             pitcher_has_ball=True
             ball_in_play = False
-    # Foul ball
+        hit_power = 10
     elif(ball.x < 0) or ball.x > 512 or ball.y > 522:
+        hit_power = 10
         ball.x = 259
         ball.y = 295
         pitcher_has_ball=True
@@ -175,19 +175,6 @@ def ball_off_screen_check():
             metrics["strikes"] += 1
 def offense():
     global ball_in_play
-    if ball_in_play and not pitcher_has_ball:
-        if len(basemen) == 1:
-            move_toward(first_base, basemen[0], 3)
-        elif len(basemen) == 2:
-            move_toward(first_base, basemen[1], 3)
-            move_toward(second_base, basemen[0], 3)
-        elif len(basemen) == 3:
-            move_toward(first_base, basemen[2], 3)
-            move_toward(second_base, basemen[1], 3)
-            move_toward(third_base, basemen[0], 3)
-            if basemen[0].touches(home_base):
-                basemen.remove(basemen[0])
-                metrics["runs"] += 1
     if ball_in_play:
         if len(basemen) == 1:
             move_toward(second_base, basemen[0], 3)
@@ -267,11 +254,10 @@ def tick(keys):
     if pygame.K_SPACE in keys:
         # decrease hit power
         if hit_power > 0:
-            hit_power -= 1
-    print(hit_power)
+            hit_power -= 3
 
 
-    defense(fielders)
+    # defense(fielders)
     offense()
 
     ball_off_screen_check()
