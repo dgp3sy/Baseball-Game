@@ -12,6 +12,8 @@ third_base = gamebox.from_color(107, 297, "white", 8, 8)
 home_base = gamebox.from_color(256, 440, "white", 8, 8)
 bases=[first_base,second_base,third_base,home_base]
 
+
+
 batter=gamebox.from_color(270, 440, "red", 10, 10)
 pitcher=gamebox.from_color(256,295, "purple", 10,10)
 first_base_player=gamebox.from_color(393, 275, "purple", 10, 10)
@@ -47,6 +49,8 @@ frames = 0
 hit_power = 10
 await_return=0
 ball_hit_type=-1
+
+
 is_pitch = False
 is_hit=False
 catcher_has_ball = False
@@ -56,6 +60,9 @@ pitcher_has_ball = True
 determine_hit = False
 ball_in_play = False
 defense_has_ball = False
+is_throwing2 = False
+play_is_over = False
+batter_is_safe = False
 
 # metrics for game
 outs = 0
@@ -67,7 +74,30 @@ metrics = {
     "outs" : 0, "strikes" : 0, "balls": 0, "runs": 0, "inning" : 0
 }
 
-
+def move_toward(leader, follower, speed):
+    if follower.touches(leader):
+        # Close enough: do nothing
+        pass
+    elif follower.x < leader.x and follower.y < leader.y:
+        follower.x += speed
+        follower.y += speed
+    elif follower.x > leader.x and follower.y < leader.y:
+        follower.x -= speed
+        follower.y += speed
+    elif follower.x < leader.x and follower.y > leader.y:
+        follower.x += speed
+        follower.y -= speed
+    elif follower.x > leader.x and follower.y > leader.y:
+        follower.x -= speed
+        follower.y -= speed
+    elif follower.x > leader.x:
+        follower.x -= speed
+    elif follower.x < leader.x:
+        follower.x += speed
+    elif follower.y > leader.y:
+        follower.y -= speed
+    elif follower.y < leader.y:
+        follower.y += speed
 def draw_metrics():
     outs_circle_list = []
     out_draw = gamebox.from_text(425, 400, "Outs: ", 24, "white")
@@ -94,16 +124,15 @@ def draw_list(obj_list):
     for base in obj_list:
         camera.draw(base)
 def new_hit(power):
-    xspeed = random.randint(-5,5)
+    xspeed = random.randint(-25,25)
     yspeed = power
     if xspeed == 0:
         xspeed = 1
     ## FOR DEBUGING: MAKE IT A HIT EVERY TIME
-    # xspeed=2
+    xspeed=8
 
-    return xspeed, yspeed
+    return xspeed/5, yspeed
 def pitch_ball():
-    # TODO : There is a bug where if the ball is batted to the pitcher, then it is just a normal boring hit right back to him
     global is_pitch, catcher_has_ball, is_return_pitch, await_return, return_ball, pitcher_has_ball, determine_hit, hit_power
     if is_pitch and ball.y < catcher.y:
         ball.y += 7
@@ -125,6 +154,9 @@ def pitch_ball():
             catcher_has_ball=False
             return_ball=False
             pitcher_has_ball=True
+def catch_ball():
+    ball.x += 0
+    ball.y += 0
 def batting(keys):
     global is_pitch, is_hit, ball_hit_type, pitcher_has_ball, determine_hit, ball_in_play, defense_has_ball, hit_power
     global x_speed, y_speed
@@ -156,6 +188,14 @@ def batting(keys):
 def return_batter_to_mound():
     batter.x = 270
     batter.y = 440
+    reset_defense()
+def reset_defense():
+    first_base_player.x, first_base_player.y = 393, 275
+    second_base_player.x, second_base_player.y = 331, 190
+    # third_base_player.move(112, 280)
+    # left_field.move(37, 25)
+    # center_field.move(252, 10)
+    # right_field.move(475, 425)
 def ball_off_screen_check():
     global pitcher_has_ball, ball_in_play, hit_power
     # HIT!!
@@ -193,51 +233,66 @@ def offense():
                 basemen.remove(basemen[0])
                 metrics["runs"] += 1
     # move basemen[len(basemen)-1] to first base - probably implement this with a stack
+def first_base_defense():
+    global ball_in_play, play_is_over, batter_is_safe
+    move_toward(first_base, first_base_player, 2)
+    ball.x = first_base_player.x
+    ball.y = first_base_player.y
+
+    # First base player gets the batter out
+    if first_base_player.touches(first_base) and not batter_is_safe:
+        metrics["outs"] += 1
+        return_batter_to_mound()
+        ball_in_play = False
+        play_is_over = True
+    # First Base player does not get batter out
+    if first_base.touches(first_base) and batter_is_safe:
+        ball_in_play = False
+        play_is_over = True
+def second_base_defense():
+    global is_throwing2
+    move_toward(first_base_player, ball, 3)
+    # caught ball
+    if first_base_player.touches(ball):
+        is_throwing2 = False
 def defense():
     # TODO : Need to work on player defense
-    global ball_in_play, pitcher_has_ball, defense_has_ball, is_pitch
+    global ball_in_play, pitcher_has_ball, defense_has_ball, is_pitch, is_throwing2, play_is_over, batter_is_safe
     update_outs=False
     if ball_in_play:
-        for player in fielders:
-            if player.touches(ball):
-                ball.x += 0
-                ball.y += 0
-                defense_has_ball=True
-                update_outs=True
+        if first_base_player.touches(ball):
+            catch_ball()
+            defense_has_ball = True
+            first_base_defense()
+        elif second_base_player.touches(ball) or is_throwing2:
+            catch_ball()
+            defense_has_ball = True
+            is_throwing2 = True
+            second_base_defense()
+        else:
+            for player in fielders:
+                if player.touches(ball):
+                    ball.x += 0
+                    ball.y += 0
+                    defense_has_ball=True
+                    update_outs=True
     if update_outs:
         metrics["outs"] += 1
+        reset_defense()
     if defense_has_ball:
-        move_toward(pitcher, ball, 3)
+        # move_toward(pitcher, ball, 3)
         if pitcher.touches(ball):
             pitcher_has_ball = True
+    # TODO : I think i want some sort of new pitch method to reset to the next pitch
+    if batter_is_safe and play_is_over:
+        move_toward(pitcher, ball, 2)
+        reset_defense()
+        return_batter_to_mound()
     if pitcher_has_ball:
         defense_has_ball = False
-def move_toward(leader, follower, speed):
-    if follower.touches(leader):
-        # Close enough: do nothing
-        pass
-    elif follower.x < leader.x and follower.y < leader.y:
-        follower.x += speed
-        follower.y += speed
-    elif follower.x > leader.x and follower.y < leader.y:
-        follower.x -= speed
-        follower.y += speed
-    elif follower.x < leader.x and follower.y > leader.y:
-        follower.x += speed
-        follower.y -= speed
-    elif follower.x > leader.x and follower.y > leader.y:
-        follower.x -= speed
-        follower.y -= speed
-    elif follower.x > leader.x:
-        follower.x -= speed
-    elif follower.x < leader.x:
-        follower.x += speed
-    elif follower.y > leader.y:
-        follower.y -= speed
-    elif follower.y < leader.y:
-        follower.y += speed
+        batter_is_safe = False
 def batter_movement(keys):
-    global ball_in_play
+    global ball_in_play, batter_is_safe
     if pygame.K_UP in keys:
         batter.y -= 2
     if pygame.K_LEFT in keys:
@@ -246,6 +301,8 @@ def batter_movement(keys):
         batter.x += 2
     if pygame.K_DOWN in keys:
         batter.y += 2
+    if batter.touches(first_base):
+        batter_is_safe = True
 def tick(keys):
     global frames, is_pitch, catcher_has_ball, is_return_pitch, pitcher_has_ball, hit_power
 
@@ -255,7 +312,7 @@ def tick(keys):
     if pygame.K_SPACE in keys:
         # decrease hit power
         if hit_power > 0:
-            hit_power -= 3
+            hit_power -= 5
 
 
     defense()
