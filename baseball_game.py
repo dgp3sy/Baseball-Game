@@ -29,7 +29,6 @@ players = [
     left_field, right_field, center_field
 ]
 fielders = [
-    pitcher, catcher,
     first_base_player, second_base_player, shortstop, third_base_player,
     left_field, right_field, center_field
 ]
@@ -72,10 +71,13 @@ metrics = {
 def draw_metrics():
     outs_circle_list = []
     out_draw = gamebox.from_text(425, 400, "Outs: ", 24, "white")
+    if metrics["strikes"] == 3:
+        metrics["outs"] += 1
+        metrics["strikes"] = 0
     if metrics["outs"] == 1:
         outs_circle_list = [gamebox.from_circle(420, 420, "white", 5)]
     elif metrics["outs"] == 2:
-        outs_circle_list = [gamebox.from_circle(420, 420, "white", 5), gamebox.from_circle(420, 430, "white", 5)]
+        outs_circle_list = [gamebox.from_circle(420, 420, "white", 5), gamebox.from_circle(430, 420, "white", 5)]
     elif metrics["outs"] == 3:
         metrics["inning"] += 1
         metrics["outs"] = 0
@@ -97,7 +99,7 @@ def new_hit(power):
     if xspeed == 0:
         xspeed = 1
     ## FOR DEBUGING: MAKE IT A HIT EVERY TIME
-    xspeed=2
+    # xspeed=2
 
     return xspeed, yspeed
 def pitch_ball():
@@ -110,6 +112,8 @@ def pitch_ball():
         catcher_has_ball = True
     if catcher_has_ball:
         await_return += 1
+        if await_return == 1:
+            metrics["strikes"] += 1
         hit_power = 10
         if await_return % 25 == 0:
             return_ball = True
@@ -189,30 +193,27 @@ def offense():
                 basemen.remove(basemen[0])
                 metrics["runs"] += 1
     # move basemen[len(basemen)-1] to first base - probably implement this with a stack
-def defense(player_list):
+def defense():
     # TODO : Need to work on player defense
     global ball_in_play, pitcher_has_ball, defense_has_ball, is_pitch
+    update_outs=False
     if ball_in_play:
-        for player in player_list:
+        for player in fielders:
             if player.touches(ball):
                 ball.x += 0
                 ball.y += 0
                 defense_has_ball=True
-                metrics["outs"] += 1
+                update_outs=True
+    if update_outs:
+        metrics["outs"] += 1
     if defense_has_ball:
-        if ball.y < pitcher.y:
-            ball.y += 3
-        if ball.y > pitcher.y:
-            ball.y -= 3
-        if ball.x < pitcher.x:
-            ball.x += 3
-        if ball.x > pitcher.x:
-            ball.x -= 3
-        if abs(ball.y - pitcher.y) <= 3 and abs(ball.x - pitcher.x) <= 3:
-            pitcher_has_ball=True
-            ball_in_play = False
+        move_toward(pitcher, ball, 3)
+        if pitcher.touches(ball):
+            pitcher_has_ball = True
+    if pitcher_has_ball:
+        defense_has_ball = False
 def move_toward(leader, follower, speed):
-    if abs(follower.x - leader.x) <= 5 and abs(follower.y - leader.y) <= 5:
+    if follower.touches(leader):
         # Close enough: do nothing
         pass
     elif follower.x < leader.x and follower.y < leader.y:
@@ -257,7 +258,7 @@ def tick(keys):
             hit_power -= 3
 
 
-    # defense(fielders)
+    defense()
     offense()
 
     ball_off_screen_check()
