@@ -283,8 +283,14 @@ def defense():
         # move_toward(pitcher, ball, 3)
         if pitcher.touches(ball):
             pitcher_has_ball = True
+            ball.x = pitcher.x
+            ball.y = pitcher.y
     # TODO : I think i want some sort of new pitch method to reset to the next pitch
     if batter_is_safe and play_is_over:
+        move_toward(pitcher, ball, 2)
+        reset_defense()
+        return_batter_to_mound()
+    if not batter_is_safe and play_is_over:
         move_toward(pitcher, ball, 2)
         reset_defense()
         return_batter_to_mound()
