@@ -11,6 +11,7 @@ In addition, it is crucial that the gamebox.py file and other images remain in t
 ## Controls
 Pitching: To have the computer pitch the ball, press the "A" key. <br />
 Batting: In order to swing the bat, press Space. If the bat hits the ball, then you will see animation for the ball entering the field of play
+Base Running: Once you hit the ball, you will use the arrow keys to run the bases
 ## Sample Gameplay
 Here is an example of the game output
 ![This is a sample of the gameplay](https://github.com/dgp3sy/Baseball-Game/blob/master/sample_run_screenshot.PNG)
