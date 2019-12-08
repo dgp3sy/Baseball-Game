@@ -171,6 +171,11 @@ def ball_off_screen_check():
         ball_in_play = False
         if (metrics["strikes"] != 2):
             metrics["strikes"] += 1
+def offense():
+    global ball_in_play
+    if ball_in_play:
+        ...
+        # move basemen[len(basemen)-1] to first base - probably implement this with a stack
 
 def defense(player_list):
     global ball_in_play, pitcher_has_ball, defense_has_ball, is_pitch
