@@ -138,10 +138,15 @@ def batting(keys):
         ball_in_play = True
         ball.x += x_speed
         ball.y -= y_speed
-    # if not pitcher_has_ball:
-    #     run_bases()
+    if not pitcher_has_ball:
+        run_bases(keys)
+    if pitcher_has_ball and (batter.x, batter.y) != (270, 440):
+        return_batter_to_mound()
 
 
+def return_batter_to_mound():
+    batter.x = 270
+    batter.y = 440
 
 
 def ball_off_screen_check():
@@ -163,26 +168,34 @@ def defense(player_list):
                 defense_has_ball=True
                 metrics["outs"] += 1
     if defense_has_ball:
-        if ball.y < pitcher.y:
-            ball.y += 3
-        if ball.y > pitcher.y:
-            ball.y -= 3
-        if ball.x < pitcher.x:
-            ball.x += 3
-        if ball.x > pitcher.x:
-            ball.x -= 3
-        # move_toward(ball, pitcher, 300)
+        # if ball.y < pitcher.y:
+        #     ball.y += 3
+        # if ball.y > pitcher.y:
+        #     ball.y -= 3
+        # if ball.x < pitcher.x:
+        #     ball.x += 3
+        # if ball.x > pitcher.x:
+        #     ball.x -= 3
+        # move_toward(ball, pitcher, 2)
         if ball.y - pitcher.y <= 3 and ball.x - pitcher.x <= 3:
             pitcher_has_ball=True
 
-# def move_toward(moveable_obj, stationary_obj, speed):
-#     dx, dy = (stationary_obj.x - moveable_obj.y, stationary_obj.y - moveable_obj.y)
-#     stepx, stepy = (dx / speed, dy / speed)
-#     ball.move(moveable_obj.x + stepx, moveable_obj.y + stepy)
+def move_toward(moveable_obj, stationary_obj, speed):
+    dx, dy = (stationary_obj.x - moveable_obj.y, stationary_obj.y - moveable_obj.y)
+    stepx, stepy = (dx / speed, dy / speed)
+    ball.move(moveable_obj.x + stepx, moveable_obj.y + stepy)
 
-# def run_bases():
-#     global ball_in_play
-#     move_toward(batter, first_base, 3)
+def run_bases(keys):
+    global ball_in_play
+    if pygame.K_UP in keys:
+        batter.y -= 2
+    if pygame.K_LEFT in keys:
+        batter.x -= 2
+    if pygame.K_RIGHT in keys:
+        batter.x += 2
+    if pygame.K_DOWN in keys:
+        batter.y += 2
+
 
 
 def tick(keys):
