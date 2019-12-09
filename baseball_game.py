@@ -8,7 +8,7 @@ camera = gamebox.Camera(512, 512)
 
 
 
-first_base = gamebox.from_color(405, 296, "green", 8, 8)
+first_base = gamebox.from_color(405, 296, "white", 8, 8)
 second_base = gamebox.from_color(256, 150, "white", 8, 8)
 third_base = gamebox.from_color(107, 297, "white", 8, 8)
 home_base = gamebox.from_color(256, 440, "white", 8, 8)
@@ -122,30 +122,13 @@ def return_batter_to_mound():
     batter.x = 270
     batter.y = 440
 def move_toward(leader, follower, speed):
-    if abs(follower.x - leader.x) <= 5 and abs(follower.y - leader.y) <= 5:
-        # Base Case: get closer
-        ...
-        # move_toward(leader, follower, 0.5)
-    elif follower.x < leader.x and follower.y < leader.y:
-        follower.x += speed
-        follower.y += speed
-    elif follower.x > leader.x and follower.y < leader.y:
-        follower.x -= speed
-        follower.y += speed
-    elif follower.x < leader.x and follower.y > leader.y:
-        follower.x += speed
-        follower.y -= speed
-    elif follower.x > leader.x and follower.y > leader.y:
-        follower.x -= speed
-        follower.y -= speed
-    elif follower.x > leader.x:
-        follower.x -= speed
-    elif follower.x < leader.x:
-        follower.x += speed
-    elif follower.y > leader.y:
-        follower.y -= speed
-    elif follower.y < leader.y:
-        follower.y += speed
+    run = leader.x - follower.x
+    rise = leader.y - follower.y
+    length = math.sqrt((rise * rise) + (run * run));
+    unitX = run / length
+    unitY = rise / length
+    follower.x += unitX * speed
+    follower.y += unitY * speed
 def batter_movement(keys):
     global ball_in_play
     if pygame.K_UP in keys:
