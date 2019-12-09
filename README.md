@@ -1,5 +1,5 @@
 # Baseball-Game
-This is a baseball game using pygame and gamebox, a wrapper created by Luther Tychonievich at the University of Virginia
+This is a baseball game using pygame and gamebox, a wrapper for pygame
 
 ## Getting Started
 Please feel free to download this game, and play on your own machine. In order to do this, you need a Python 3 interpreter and need to install the pygame package into that project. Run the following command in your terminal in order to download the appropriate package:
@@ -17,7 +17,7 @@ Here is an example of the game output
 ![This is a sample of the gameplay](https://github.com/dgp3sy/Baseball-Game/blob/master/sample_run_screenshot.PNG)
 
 ## Liscense
-This project is open source. Feel free to use, reuse, adapt, and modify the code. I use a wrapper for pygame method, in which the author asks the following: "This code is the original work of Luther Tychonievich, who releases it into the public domain. As a courtesy, Luther would appreciate it if you acknowledged him in any work that benefited from this code."
+This project is under the GNU General Public Lisense. Any work deriving from this project must be open source and fall under the same liscense. 
 
 ## Acknowlegements
 * Luther Tychonievich, University of Virginia
