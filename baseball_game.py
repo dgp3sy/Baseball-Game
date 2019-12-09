@@ -303,9 +303,6 @@ def defense_based_on_angle(a):
                         metrics["outs"] += 1
                     if is_double_play:
                         metrics["outs"] += 2
-
-
-
 def animate_hit(keys, power, direction):
     # TODO : Scoring runs
     # TODO : Base Running
@@ -352,7 +349,7 @@ def tick(keys):
     global frames, is_pitch, catcher_has_ball, is_return_pitch, pitcher_has_ball, hit_power, is_new_at_bat, pitch_speed
     global has_pressed_space_1, has_pressed_space_2
     if is_new_at_bat:
-        pitch_speed = random.randint(3, 10)
+        pitch_speed = random.randint(3, 20)
         camera.clear("black")
         if has_pressed_space_1 and has_pressed_space_2:
             is_new_at_bat = False
