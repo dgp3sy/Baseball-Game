@@ -14,11 +14,11 @@ Batting: In order to swing the bat, press Space. If the bat hits the ball, then 
 Base Running: Once you hit the ball, you will use the arrow keys to run the bases
 
 ## Sample Gameplay
-Here is an example of the game output
+Here is an example of the game output: <br />
 <img src="https://github.com/dgp3sy/Baseball-Game/blob/master/sample_run_screenshot.PNG" width = 193 height = 205 />
 
 ## Alternative Gameplay
-I am currently developing two versions of the gameplay. The first is what was described above, which focuses more on the entire gameplay of the baseball experience. The second gameplay is more focused on the aspect of batting and offense. If you would like to play this game, download the "different_gameplay" branch and follow the same steps as above. A sample of the alternative gameplay is provided below. 
+I am currently developing two versions of the gameplay. The first is what was described above, which focuses more on the entire gameplay of the baseball experience. The second gameplay is more focused on the aspect of batting and offense. If you would like to play this game, download the "different_gameplay" branch and follow the same steps as above. A sample of the alternative gameplay is provided below: <br />
 <img src="https://github.com/dgp3sy/Baseball-Game/blob/different_gameplay/alternative_play.PNG" width = 193 height = 205 />
 
 
