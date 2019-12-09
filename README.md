@@ -15,12 +15,12 @@ Base Running: Once you hit the ball, you will use the arrow keys to run the base
 
 ## Sample Gameplay
 Here is an example of the game output
-<img src="https://github.com/dgp3sy/Baseball-Game/blob/master/sample_run_screenshot.PNG" width = 200 height = 400 />
-![This is a sample of the gameplay](https://github.com/dgp3sy/Baseball-Game/blob/master/sample_run_screenshot.PNG)
+<img src="https://github.com/dgp3sy/Baseball-Game/blob/master/sample_run_screenshot.PNG" width = 193 height = 45 />
 
 ## Alternative Gameplay
 I am currently developing two versions of the gameplay. The first is what was described above, which focuses more on the entire gameplay of the baseball experience. The second gameplay is more focused on the aspect of batting and offense. If you would like to play this game, download the "different_gameplay" branch and follow the same steps as above. A sample of the alternative gameplay is provided below. 
-![This is a sample of the alternative gameplay](https://github.com/dgp3sy/Baseball-Game/blob/different_gameplay/alternative_play.PNG | width = 30)
+<img src="https://github.com/dgp3sy/Baseball-Game/blob/different_gameplay/alternative_play.PNG" width = 193 height = 45 />
+
 
 ## Liscense
 This project is under the GNU General Public Lisense. Any work deriving from this project must be open source and fall under the same liscense. 
