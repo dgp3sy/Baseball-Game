@@ -61,6 +61,7 @@ fielder_has_ball = False
 is_new_at_bat = True
 need_to_reset=False
 is_double_play=False
+is_foul_ball = False
 players_next_base=1
 # metrics for game
 outs = 0
@@ -79,23 +80,38 @@ metrics = {
 on_base = [False, False, False, False]
 hit_power_bar = gamebox.from_color(135, 460, "red", 100, 10)
 hit_distance_bar = gamebox.from_color(135, 480, "yellow", 100, 10)
+hit_direction_good = gamebox.from_color(135, 480, "dark green", 30, 10)
 power_slider = gamebox.from_color(hit_power_bar.x - hit_power_bar.width/2, hit_power_bar.y, "black", 5, 10)
 distance_slider = gamebox.from_color(hit_distance_bar.x - hit_distance_bar.width/2, hit_distance_bar.y, "black", 5, 10)
 slider_speed = 3
 has_pressed_space_1=False
 has_pressed_space_2=False
 
-
+def handle_metrics():
+    # Three strikes, you're out
+    if metrics["strikes"] >= 3:
+        metrics["outs"] += 1
+        metrics["strikes"] =0
+        metrics["balls"] = 0
+    # Three outs ends the inning
+    if metrics["outs"] >= 3:
+        metrics["inning"] += 1
+        metrics["outs"] = 0
+        metrics["strikes"] = 0
+        metrics["balls"] = 0
+    # Four balls is a walk
+    if metrics["balls"] >= 4:
+        metrics["strikes"] = 0
+        metrics["balls"] = 0
 def draw_metrics():
+    handle_metrics()
     outs_circle_list = []
     out_draw = gamebox.from_text(425, 400, "Outs: ", 24, "white")
     if metrics["outs"] == 1:
         outs_circle_list = [gamebox.from_circle(420, 420, "white", 5)]
     elif metrics["outs"] == 2:
-        outs_circle_list = [gamebox.from_circle(420, 420, "white", 5), gamebox.from_circle(420, 430, "white", 5)]
-    elif metrics["outs"] == 3:
-        metrics["inning"] += 1
-        metrics["outs"] = 0
+        outs_circle_list = [gamebox.from_circle(420, 420, "white", 5), gamebox.from_circle(430, 420, "white", 5)]
+
     at_bat_draw = gamebox.from_text(425, 450, str(metrics["strikes"]) + " - " + str(metrics["balls"]), 24, "white")
     runs_draw = gamebox.from_text(75, 400, "Score: " + str(metrics["runs"]), 24, "white")
     inning_draw = gamebox.from_text(75, 420, "Inning: " + str(metrics["inning"]), 24, "white")
@@ -111,6 +127,7 @@ def draw_metrics():
     camera.draw(hit_power_label)
     camera.draw(hit_power_bar)
     camera.draw(hit_distance_bar)
+    camera.draw(hit_direction_good)
     camera.draw(distance_slider)
     camera.draw(power_slider)
 def draw_list(obj_list):
@@ -124,7 +141,7 @@ def return_batter_to_mound():
 def move_toward(leader, follower, speed):
     run = leader.x - follower.x
     rise = leader.y - follower.y
-    length = math.sqrt((rise * rise) + (run * run));
+    length = math.sqrt((rise * rise) + (run * run))
     unitX = run / length
     unitY = rise / length
     follower.x += unitX * speed
@@ -159,6 +176,8 @@ def draw_everything():
 def normalize_to_range(val, new_min, new_max):
     # NewValue = (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
     return (((val - 86) * (new_max -new_min)) / (186 - 86)) + new_min
+def is_strike():
+    return ball.y > 512
 def is_ball_off_screen():
     return ball.x > 512 or ball.x < 0 or ball.y > 512 or ball.y < 0
 def reset_fielder_positions():
@@ -171,7 +190,11 @@ def reset_fielder_positions():
     shortstop.x, shortstop.y = 173, 190
     pitcher.x, pitcher.y = 256,295
 def new_pitch():
-    global is_hit, is_new_at_bat, has_pressed_space_1, has_pressed_space_2, fielder_has_ball, is_double_play
+    global is_hit, is_new_at_bat, has_pressed_space_1, has_pressed_space_2, fielder_has_ball, is_double_play, is_foul_ball
+    if is_foul_ball:
+        if metrics["strikes"] < 2:
+            metrics["strikes"] += 1
+    is_foul_ball=False
     is_hit = False
     is_new_at_bat = True
     has_pressed_space_1 = False
@@ -201,10 +224,12 @@ def closest_player_to_base(player_chasing_ball):
             min_indx = i
     return fielders[min_indx]
 def defense_based_on_ball_location():
-    # TODO : Right now you are using a greedy algorithm, such that the closest person to the ball chases the
-    #  ball and the next closest person to the base goes to the base. What you want to do is have the angle of
-    #  the ball calculated at the point where the ball hits the bat, and have the players move accordingly as
-    #  they would in a normal game
+    '''
+    Right now you are using a greedy algorithm, such that the closest person to the ball chases the
+    ball and the next closest person to the base goes to the base. What you want to do is have the angle of
+    the ball calculated at the point where the ball hits the bat, and have the players move accordingly as
+    they would in a normal game
+    '''
     global fielder_has_ball, get_ball
     # closest player needs to move to the ball
     if not fielder_has_ball:
@@ -224,32 +249,29 @@ def defense_based_on_ball_location():
             new_pitch()
             if not on_base[players_next_base]:
                 metrics["outs"] += 1
-def double_play_second_to_third():
-    global is_double_play, get_base, get_ball
-def new_play(player_getting_ball, player_getting_base):
-    global get_ball, get_base, fielder_has_ball
+def new_play(player_getting_ball, player_getting_base, base=first_base, is_double=False):
+    global get_ball, get_base, fielder_has_ball, is_double_play
     get_ball = player_getting_ball
     get_base = player_getting_base
     move_toward(ball, get_ball, 1)
-    move_toward(first_base, get_base, 1)
+    move_toward(base, get_base, 1)
     if get_ball.touches(ball):
         fielder_has_ball = True
+        if is_double:
+            is_double_play = True
 def defense_based_on_angle(a):
-    global fielder_has_ball, get_ball, get_base, is_double_play
-
+    # TODO : Keep track of leading base and try to get that runner out
+    global fielder_has_ball, get_ball, get_base, is_double_play, is_foul_ball
     if not fielder_has_ball:
-        # left tip foul, do nothing
-        if a < 30:
-            ...
+        if a < 30 : # left tip foul, do nothing
+            is_foul_ball = True
         # third base chase - throw to first
-        elif 50 > a >= 30:
+        if 50 > a >= 30:
             new_play(third_base_player, first_base_player)
-            print("3 to 1")
         # double play at second and first
         elif 50 <= a < 87:
             # Shortstop is fetching ball
-            is_double_play = True
-            new_play(shortstop, second_base_player)
+            new_play(shortstop, second_base_player, second_base, True)
         # Pitcher throws to first
         elif 87 <= a < 93:
             new_play(pitcher, first_base_player)
@@ -260,6 +282,8 @@ def defense_based_on_angle(a):
             new_play(right_field, first_base_player)
         elif 130 <= a < 150:
             new_play(right_field, first_base_player)
+        if a >= 150:  #  right tip foul - don't do anything
+            is_foul_ball = True
 
     if fielder_has_ball:
         if is_double_play:
@@ -275,10 +299,18 @@ def defense_based_on_angle(a):
             if first_base_player.touches(first_base) and first_base_player.touches(ball):
                 new_pitch()
                 if not on_base[players_next_base]:
-                    metrics["outs"] += 1
+                    if not is_double_play:
+                        metrics["outs"] += 1
+                    if is_double_play:
+                        metrics["outs"] += 2
+
 
 
 def animate_hit(keys, power, direction):
+    # TODO : Scoring runs
+    # TODO : Base Running
+    # TODO : Keeping track of strikes
+    # TODO : keep track of outs
     global is_hit, is_new_at_bat, need_to_reset, players_next_base, angle
     camera.clear("black")
     if not fielder_has_ball:
@@ -299,16 +331,19 @@ def animate_hit(keys, power, direction):
         new_pitch()
     camera.display()
 def animate_pitch(keys, pitch_speed):
+    # TODO : Catcher
     global has_pressed_space_2, has_pressed_space_1, is_new_at_bat, is_hit, hit_frames
     camera.clear("black")
     draw_everything()
-
-    if not is_hit:
+    if not is_hit and not catcher_has_ball:
         if pygame.K_SPACE in keys:
             camera.draw(bat)
             if ball.touches(bat):
                 is_hit = True
         ball.y += pitch_speed
+        if is_strike():
+            metrics["strikes"] += 1
+            new_pitch()
     else:
         # hit_frames=0
         animate_hit(keys, power_slider.x, distance_slider.x)
