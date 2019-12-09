@@ -1,13 +1,14 @@
 import gamebox
 import pygame
 import random
+import formulas
 import math
 
 camera = gamebox.Camera(512, 512)
 
 
 
-first_base = gamebox.from_color(405, 296, "white", 8, 8)
+first_base = gamebox.from_color(405, 296, "green", 8, 8)
 second_base = gamebox.from_color(256, 150, "white", 8, 8)
 third_base = gamebox.from_color(107, 297, "white", 8, 8)
 home_base = gamebox.from_color(256, 440, "white", 8, 8)
@@ -47,7 +48,7 @@ y_speed = 0
 frames = 0
 hit_power = 10
 await_return=0
-ball_hit_type=-1
+angle=45
 is_pitch = False
 is_hit=False
 catcher_has_ball = False
@@ -59,6 +60,7 @@ ball_in_play = False
 fielder_has_ball = False
 is_new_at_bat = True
 need_to_reset=False
+is_double_play=False
 players_next_base=1
 # metrics for game
 outs = 0
@@ -121,8 +123,9 @@ def return_batter_to_mound():
     batter.y = 440
 def move_toward(leader, follower, speed):
     if abs(follower.x - leader.x) <= 5 and abs(follower.y - leader.y) <= 5:
-        # Close enough: do nothing
-        pass
+        # Base Case: get closer
+        follower.x = leader.x
+        follower.y = leader.y
     elif follower.x < leader.x and follower.y < leader.y:
         follower.x += speed
         follower.y += speed
@@ -190,6 +193,7 @@ def new_pitch():
     has_pressed_space_1 = False
     has_pressed_space_2 = False
     fielder_has_ball = False
+    is_double_play = False
     ball.x = pitcher.x
     ball.y = pitcher.y
     reset_fielder_positions()
@@ -212,7 +216,7 @@ def closest_player_to_base(player_chasing_ball):
             min_dist = d
             min_indx = i
     return fielders[min_indx]
-def defense():
+def defense_based_on_ball_location():
     # TODO : Right now you are using a greedy algorithm, such that the closest person to the ball chases the
     #  ball and the next closest person to the base goes to the base. What you want to do is have the angle of
     #  the ball calculated at the point where the ball hits the bat, and have the players move accordingly as
@@ -236,15 +240,62 @@ def defense():
             new_pitch()
             if not on_base[players_next_base]:
                 metrics["outs"] += 1
+def defense_based_on_angle(a):
+    global fielder_has_ball, get_ball, get_base, is_double_play
 
-def animate_hit(keys, power, distance):
-    global is_hit, is_new_at_bat, need_to_reset, players_next_base
+    # left tip foul, do nothing
+    if not fielder_has_ball:
+        if a < 35:
+            ...
+        # third base chase
+        if 50 > a >= 35:
+            get_ball = third_base_player
+            get_base = first_base_player
+            move_toward(ball, third_base_player, 1)
+            move_toward(first_base, first_base_player, 1)
+            if third_base_player.touches(ball):
+                fielder_has_ball = True
+        if 50 <= a < 80:
+            is_double_play = True
+            get_ball = shortstop
+            get_base = second_base_player
+            move_toward(ball, shortstop, 1)
+            move_toward(second_base, second_base_player, 1)
+            if shortstop.touches(ball):
+                fielder_has_ball = True
+
+    if fielder_has_ball:
+        if is_double_play:
+            move_toward(get_base, ball, 3)
+            print(second_base_player.touches(second_base), second_base_player.touches(ball))
+            if second_base_player.touches(second_base) and second_base_player.touches(ball):
+                print("going to second base")
+                is_double_play = False
+                get_base = first_base_player
+        else:
+            print("should be going to first now")
+            move_toward(get_base, ball, 3)
+            if first_base_player.touches(first_base) and first_base_player.touches(ball):
+                new_pitch()
+                if not on_base[players_next_base]:
+                    metrics["outs"] += 1
+
+
+def animate_hit(keys, power, direction):
+    global is_hit, is_new_at_bat, need_to_reset, players_next_base, angle
     camera.clear("black")
     if not fielder_has_ball:
-        ball.y -= normalize_to_range(power, 1, 5)
-        ball.x += normalize_to_range(distance, -15, 15)
+        ball.y -= 3.12
+        ball.x += -1.1
+        angle = formulas.xy_to_degree(3.12, -1.1) + 90
+        # print(angle)
+        # ball.y -= normalize_to_range(power, 1, 5)
+        # ball.x += normalize_to_range(direction, -15, 15)
+        # angle = formulas.xy_to_degree(normalize_to_range(power, 1, 5), normalize_to_range(direction, -15, 15)) + 90
+        # print(anlge)
     draw_everything()
-    defense()
+    # defense_based_on_ball_location()
+    defense_based_on_angle(angle)
     batter_movement(keys)
     if batter.touches(bases[players_next_base]):
         on_base[players_next_base] = True
