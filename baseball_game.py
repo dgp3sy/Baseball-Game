@@ -124,8 +124,8 @@ def return_batter_to_mound():
 def move_toward(leader, follower, speed):
     if abs(follower.x - leader.x) <= 5 and abs(follower.y - leader.y) <= 5:
         # Base Case: get closer
-        follower.x = leader.x
-        follower.y = leader.y
+        ...
+        # move_toward(leader, follower, 0.5)
     elif follower.x < leader.x and follower.y < leader.y:
         follower.x += speed
         follower.y += speed
@@ -186,17 +186,18 @@ def reset_fielder_positions():
     center_field.x, center_field.y = 252, 10
     right_field.x, right_field.y = 475, 25
     shortstop.x, shortstop.y = 173, 190
+    pitcher.x, pitcher.y = 256,295
 def new_pitch():
-    global is_hit, is_new_at_bat, has_pressed_space_1, has_pressed_space_2, fielder_has_ball
+    global is_hit, is_new_at_bat, has_pressed_space_1, has_pressed_space_2, fielder_has_ball, is_double_play
     is_hit = False
     is_new_at_bat = True
     has_pressed_space_1 = False
     has_pressed_space_2 = False
     fielder_has_ball = False
     is_double_play = False
+    reset_fielder_positions()
     ball.x = pitcher.x
     ball.y = pitcher.y
-    reset_fielder_positions()
 def closest_player_to_ball():
     min_dist = float('inf')
     min_indx=0
@@ -240,41 +241,54 @@ def defense_based_on_ball_location():
             new_pitch()
             if not on_base[players_next_base]:
                 metrics["outs"] += 1
+def double_play_second_to_third():
+    global is_double_play, get_base, get_ball
+def new_play(player_getting_ball, player_getting_base):
+    global get_ball, get_base, fielder_has_ball
+    get_ball = player_getting_ball
+    get_base = player_getting_base
+    move_toward(ball, get_ball, 1)
+    move_toward(first_base, get_base, 1)
+    if get_ball.touches(ball):
+        fielder_has_ball = True
 def defense_based_on_angle(a):
     global fielder_has_ball, get_ball, get_base, is_double_play
 
-    # left tip foul, do nothing
     if not fielder_has_ball:
-        if a < 35:
+        # left tip foul, do nothing
+        if a < 30:
             ...
-        # third base chase
-        if 50 > a >= 35:
-            get_ball = third_base_player
-            get_base = first_base_player
-            move_toward(ball, third_base_player, 1)
-            move_toward(first_base, first_base_player, 1)
-            if third_base_player.touches(ball):
-                fielder_has_ball = True
-        if 50 <= a < 80:
+        # third base chase - throw to first
+        elif 50 > a >= 30:
+            new_play(third_base_player, first_base_player)
+            print("3 to 1")
+        # double play at second and first
+        elif 50 <= a < 87:
+            # Shortstop is fetching ball
             is_double_play = True
-            get_ball = shortstop
-            get_base = second_base_player
-            move_toward(ball, shortstop, 1)
-            move_toward(second_base, second_base_player, 1)
-            if shortstop.touches(ball):
-                fielder_has_ball = True
+            new_play(shortstop, second_base_player)
+        # Pitcher throws to first
+        elif 87 <= a < 93:
+            new_play(pitcher, first_base_player)
+        # second base throws to first base player
+        elif 93 <= a < 105:
+            new_play(second_base_player, first_base_player)
+        elif 105 <= a < 130:
+            new_play(right_field, first_base_player)
+        elif 130 <= a < 150:
+            new_play(right_field, first_base_player)
 
     if fielder_has_ball:
         if is_double_play:
-            move_toward(get_base, ball, 3)
-            print(second_base_player.touches(second_base), second_base_player.touches(ball))
-            if second_base_player.touches(second_base) and second_base_player.touches(ball):
-                print("going to second base")
+            move_toward(get_base, ball, 3) # ball coming toward second base
+            if second_base_player.touches(ball):
+                # initiate throw to first
                 is_double_play = False
                 get_base = first_base_player
         else:
-            print("should be going to first now")
+            # ball heading to first base now
             move_toward(get_base, ball, 3)
+            move_toward(first_base, first_base_player, 1)
             if first_base_player.touches(first_base) and first_base_player.touches(ball):
                 new_pitch()
                 if not on_base[players_next_base]:
@@ -285,14 +299,9 @@ def animate_hit(keys, power, direction):
     global is_hit, is_new_at_bat, need_to_reset, players_next_base, angle
     camera.clear("black")
     if not fielder_has_ball:
-        ball.y -= 3.12
-        ball.x += -1.1
-        angle = formulas.xy_to_degree(3.12, -1.1) + 90
-        # print(angle)
-        # ball.y -= normalize_to_range(power, 1, 5)
-        # ball.x += normalize_to_range(direction, -15, 15)
-        # angle = formulas.xy_to_degree(normalize_to_range(power, 1, 5), normalize_to_range(direction, -15, 15)) + 90
-        # print(anlge)
+        ball.y -= normalize_to_range(power, 1, 5)
+        ball.x += normalize_to_range(direction, -10, 10)
+        angle = formulas.xy_to_degree(normalize_to_range(power, 1, 5), normalize_to_range(direction, -15, 15)) + 90
     draw_everything()
     # defense_based_on_ball_location()
     defense_based_on_angle(angle)
