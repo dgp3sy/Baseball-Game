@@ -204,7 +204,6 @@ def move_toward(leader, follower, speed):
 def check_if_safe():
     global players_next_base, is_safe
     # print(is_safe, batter.touches(first_base))
-    print(is_safe, players_next_base)
     if players_next_base == 0: # Running toward first
         if batter.touches(first_base):
             is_safe = True
