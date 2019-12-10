@@ -18,7 +18,7 @@ Base Running: Once you hit the ball, you will use the arrow keys to run the base
 
 ## Gameplay
 The gameplay is more focused on the aspect of batting and offense. First, you will see that the power slider moves from left to right, stop the slider at your desired power level by pressing "A". After this happens, the direction slider will move, you want to aim to stop the slider in the green area in order to not get a foul tip. In order to stop the direction slider, press the "S" key. Then your hit will be animated and you will try to run toward the base while the defense tries to stop you. <br />
-<img src="https://github.com/dgp3sy/Baseball-Game/blob/different_gameplay/alternative_play.PNG" width = 193 height = 205 />
+<img src="https://github.com/dgp3sy/Baseball-Game/blob/master/alternative_play.PNG" width = 193 height = 205 />
 
 
 ## Liscense
