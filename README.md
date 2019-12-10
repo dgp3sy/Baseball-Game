@@ -1,5 +1,5 @@
 # Baseball-Game
-This is a baseball game using pygame and gamebox, a wrapper created by Luther Tychonievich at the University of Virginia
+This is a baseball game using pygame and gamebox, a wrapper for pygame
 
 ## Getting Started
 Please feel free to download this game, and play on your own machine. In order to do this, you need a Python 3 interpreter and need to install the pygame package into that project. Run the following command in your terminal in order to download the appropriate package:
@@ -12,12 +12,18 @@ In addition, it is crucial that the gamebox.py file and other images remain in t
 Pitching: To have the computer pitch the ball, press the "A" key. <br />
 Batting: In order to swing the bat, press Space. If the bat hits the ball, then you will see animation for the ball entering the field of play <br />
 Base Running: Once you hit the ball, you will use the arrow keys to run the bases
+
 ## Sample Gameplay
-Here is an example of the game output
-![This is a sample of the gameplay](https://github.com/dgp3sy/Baseball-Game/blob/master/sample_run_screenshot.PNG)
+Here is an example of the game output: <br />
+<img src="https://github.com/dgp3sy/Baseball-Game/blob/master/sample_run_screenshot.PNG" width = 193 height = 205 />
+
+## Alternative Gameplay
+I am currently developing two versions of the gameplay. The first is what was described above, which focuses more on the entire gameplay of the baseball experience. The second gameplay is more focused on the aspect of batting and offense. If you would like to play this game, download the "different_gameplay" branch and follow the same steps as above. A sample of the alternative gameplay is provided below: <br />
+<img src="https://github.com/dgp3sy/Baseball-Game/blob/different_gameplay/alternative_play.PNG" width = 193 height = 205 />
+
 
 ## Liscense
-This project is open source. Feel free to use, reuse, adapt, and modify the code. I use a wrapper for pygame method, in which the author asks the following: "This code is the original work of Luther Tychonievich, who releases it into the public domain. As a courtesy, Luther would appreciate it if you acknowledged him in any work that benefited from this code."
+This project is under the GNU General Public Lisense. Any work deriving from this project must be open source and fall under the same liscense. 
 
 ## Acknowlegements
 * Luther Tychonievich, University of Virginia
