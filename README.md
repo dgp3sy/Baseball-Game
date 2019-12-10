@@ -9,16 +9,15 @@ pip install pygame
 In addition, it is crucial that the gamebox.py file and other images remain in the same folder as the rest of the game material. 
 
 ## Controls
-Pitching: To have the computer pitch the ball, press the "A" key. <br />
-Batting: In order to swing the bat, press Space. If the bat hits the ball, then you will see animation for the ball entering the field of play <br />
+Control Power: Press "A" to stop the power slider <br />
+Control Direction: Press "S" to stop the direction slider <br />
+Pitching: After this happens, the ball will comes toward you. If you think the ball is too fast to hit, you can let it pass you and take the ball. <br />
+Batting: In order to swing the bat, press Space. If the bat hits the ball, then you will see animation for the ball entering the field of play based on your direction and power that you had set on the slider <br />
 Base Running: Once you hit the ball, you will use the arrow keys to run the bases
 
-## Sample Gameplay
-Here is an example of the game output: <br />
-<img src="https://github.com/dgp3sy/Baseball-Game/blob/master/sample_run_screenshot.PNG" width = 193 height = 205 />
 
-## Alternative Gameplay
-I am currently developing two versions of the gameplay. The first is what was described above, which focuses more on the entire gameplay of the baseball experience. The second gameplay is more focused on the aspect of batting and offense. If you would like to play this game, download the "different_gameplay" branch and follow the same steps as above. A sample of the alternative gameplay is provided below: <br />
+## Gameplay
+The gameplay is more focused on the aspect of batting and offense. First, you will see that the power slider moves from left to right, stop the slider at your desired power level by pressing "A". After this happens, the direction slider will move, you want to aim to stop the slider in the green area in order to not get a foul tip. In order to stop the direction slider, press the "S" key. Then your hit will be animated and you will try to run toward the base while the defense tries to stop you. <br />
 <img src="https://github.com/dgp3sy/Baseball-Game/blob/different_gameplay/alternative_play.PNG" width = 193 height = 205 />
 
 
