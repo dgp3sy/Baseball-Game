@@ -12,16 +12,28 @@ third_base = gamebox.from_color(107, 297, "white", 8, 8)
 home_base = gamebox.from_color(256, 440, "white", 8, 8)
 bases=[home_base,first_base,second_base,third_base]
 
-batter=gamebox.from_color(270, 440, "red", 10, 10)
-pitcher=gamebox.from_color(256,295, "purple", 10,10)
-first_base_player=gamebox.from_color(393, 275, "purple", 10, 10)
-second_base_player=gamebox.from_color(331, 190, "purple", 10, 10)
-shortstop = gamebox.from_color(173, 190, "purple", 10, 10)
-third_base_player=gamebox.from_color(112, 280, "purple", 10, 10)
-catcher=gamebox.from_color(256, 455, "purple", 10, 10)
-left_field = gamebox.from_color(37, 25, "purple", 10, 10)
-center_field=gamebox.from_color(252, 10, "purple", 10, 10)
-right_field=gamebox.from_color(475, 25, "purple", 10, 10)
+# batter=gamebox.from_color(270, 440, "red", 10, 10)
+# first_base_player=gamebox.from_color(393, 275, "purple", 10, 10)
+# pitcher=gamebox.from_color(256,295, "purple", 10,10)
+# second_base_player=gamebox.from_color(331, 190, "purple", 10, 10)
+# shortstop = gamebox.from_color(173, 190, "purple", 10, 10)
+# third_base_player=gamebox.from_color(112, 280, "purple", 10, 10)
+# catcher=gamebox.from_color(256, 455, "purple", 10, 10)
+# left_field = gamebox.from_color(37, 25, "purple", 10, 10)
+# center_field=gamebox.from_color(252, 10, "purple", 10, 10)
+# right_field=gamebox.from_color(475, 25, "purple", 10, 10)
+
+batter=gamebox.from_image(270, 440, "player_img.png")
+pitcher = gamebox.from_image(256, 295, "player_img.png")
+first_base_player=gamebox.from_image(393, 275, "player_img.png")
+second_base_player=gamebox.from_image(331, 190, "player_img.png")
+shortstop=gamebox.from_image(173, 190, "player_img.png")
+third_base_player = gamebox.from_image(112, 280, "player_img.png")
+catcher=gamebox.from_image(256, 470, "player_img.png")
+left_field = gamebox.from_image(37, 25, "player_img.png")
+center_field=gamebox.from_image(252, 10, "player_img.png")
+right_field=gamebox.from_image(475, 25, "player_img.png")
+
 
 players = [
     batter, pitcher, catcher,
@@ -32,7 +44,8 @@ fielders = [
     first_base_player, second_base_player, shortstop, third_base_player,
     left_field, right_field, center_field
 ]
-basemen = []
+for player in players:
+    player.scale_by(0.4)
 
 bat=gamebox.from_color(260, 440, "orange", 15,4)
 ball=gamebox.from_image(259, 295, "baseball_transparent.png")
@@ -222,7 +235,6 @@ def draw_everything():
     camera.draw(background)
     draw_list(bases)
     draw_list(players)
-    draw_list(basemen)
     draw_metrics()
     camera.draw(ball)
 def normalize_to_range(val, new_min, new_max, old_min=86, old_max=186):
