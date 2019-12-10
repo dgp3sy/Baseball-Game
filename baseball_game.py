@@ -62,6 +62,7 @@ is_new_at_bat = True
 need_to_reset=False
 is_double_play=False
 is_foul_ball = False
+has_swung=False
 players_next_base=1
 # metrics for game
 outs = 0
@@ -190,7 +191,7 @@ def reset_fielder_positions():
     shortstop.x, shortstop.y = 173, 190
     pitcher.x, pitcher.y = 256,295
 def new_pitch():
-    global is_hit, is_new_at_bat, has_pressed_space_1, has_pressed_space_2, fielder_has_ball, is_double_play, is_foul_ball
+    global is_hit, is_new_at_bat, has_pressed_space_1, has_pressed_space_2, fielder_has_ball, is_double_play, is_foul_ball, has_swung
     if is_foul_ball:
         if metrics["strikes"] < 2:
             metrics["strikes"] += 1
@@ -201,6 +202,7 @@ def new_pitch():
     has_pressed_space_2 = False
     fielder_has_ball = False
     is_double_play = False
+    has_swung = False
     reset_fielder_positions()
     ball.x = pitcher.x
     ball.y = pitcher.y
@@ -259,6 +261,15 @@ def new_play(player_getting_ball, player_getting_base, base=first_base, is_doubl
         fielder_has_ball = True
         if is_double:
             is_double_play = True
+def outfielder_backup(outfielder, base=first_base):
+    global fielder_has_ball
+    move_toward(ball, outfielder, 1)
+    if outfielder.touches(ball):
+        fielder_has_ball=True
+def hit_ball(power, direction):
+    ball.y -= normalize_to_range(power, 1, 5)
+    ball.x += normalize_to_range(direction, -10, 10)
+    return formulas.xy_to_degree(normalize_to_range(power, 1, 5), normalize_to_range(direction, -15, 15)) + 90
 def defense_based_on_angle(a):
     # TODO : Keep track of leading base and try to get that runner out
     global fielder_has_ball, get_ball, get_base, is_double_play, is_foul_ball
@@ -266,17 +277,20 @@ def defense_based_on_angle(a):
         if a < 30 : # left tip foul, do nothing
             is_foul_ball = True
         # third base chase - throw to first
-        if 50 > a >= 30:
+        if 30 <= a < 70:
+            outfielder_backup(left_field)
             new_play(third_base_player, first_base_player)
         # double play at second and first
-        elif 50 <= a < 87:
+        elif 50 <= a < 70:
             # Shortstop is fetching ball
+            outfielder_backup(center_field)
             new_play(shortstop, second_base_player, second_base, True)
         # Pitcher throws to first
-        elif 87 <= a < 93:
+        elif 70 <= a < 93:
             new_play(pitcher, first_base_player)
         # second base throws to first base player
         elif 93 <= a < 105:
+            outfielder_backup(right_field)
             new_play(second_base_player, first_base_player)
         elif 105 <= a < 130:
             new_play(right_field, first_base_player)
@@ -311,9 +325,8 @@ def animate_hit(keys, power, direction):
     global is_hit, is_new_at_bat, need_to_reset, players_next_base, angle
     camera.clear("black")
     if not fielder_has_ball:
-        ball.y -= normalize_to_range(power, 1, 5)
-        ball.x += normalize_to_range(direction, -10, 10)
-        angle = formulas.xy_to_degree(normalize_to_range(power, 1, 5), normalize_to_range(direction, -15, 15)) + 90
+        angle = hit_ball(power, direction)
+
     draw_everything()
     # defense_based_on_ball_location()
     defense_based_on_angle(angle)
@@ -329,18 +342,23 @@ def animate_hit(keys, power, direction):
     camera.display()
 def animate_pitch(keys, pitch_speed):
     # TODO : Catcher
-    global has_pressed_space_2, has_pressed_space_1, is_new_at_bat, is_hit, hit_frames
+    global has_pressed_space_2, has_pressed_space_1, is_new_at_bat, is_hit, hit_frames, has_swung
     camera.clear("black")
     draw_everything()
     if not is_hit and not catcher_has_ball:
         if pygame.K_SPACE in keys:
             camera.draw(bat)
+            has_swung = True
             if ball.touches(bat):
                 is_hit = True
         ball.y += pitch_speed
         if is_strike():
-            metrics["strikes"] += 1
-            new_pitch()
+            if has_swung:
+                metrics["strikes"] += 1
+                new_pitch()
+            else:
+                metrics["balls"] += 1
+                new_pitch()
     else:
         # hit_frames=0
         animate_hit(keys, power_slider.x, distance_slider.x)
