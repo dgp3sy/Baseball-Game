@@ -46,7 +46,6 @@ fielders = [
 ]
 for player in players:
     player.scale_by(0.4)
-
 bat=gamebox.from_color(260, 440, "orange", 15,4)
 ball=gamebox.from_image(259, 295, "baseball_transparent.png")
 ball.scale_by(0.01)
@@ -74,6 +73,7 @@ need_to_reset=False
 is_double_play=False
 is_foul_ball = False
 has_swung=False
+is_safe = False
 players_next_base=1
 # metrics for game
 outs = 0
@@ -84,8 +84,15 @@ inning = 1
 metrics = {
     "outs" : 0, "strikes" : 0, "balls": 0, "runs": 0, "inning" : 0
 }
-
+# INDEXES FOR BASES ARE AS FOLLOWS:
+#   0 - First Base
+#   1 - Second Base
+#   2 - Third Base
+#   3 - Home Plate
+# Because this is computer science and counting starts at 0 :)
+players_next_base=0
 on_base = [False, False, False, False]
+
 hit_power_bar = gamebox.from_color(135, 460, "red", 100, 10)
 hit_distance_bar = gamebox.from_color(135, 480, "yellow", 100, 10)
 hit_direction_good = gamebox.from_color(135, 480, "dark green", 30, 10)
@@ -194,6 +201,31 @@ def move_toward(leader, follower, speed):
     unitY = rise / length
     follower.x += unitX * speed
     follower.y += unitY * speed
+def check_if_safe():
+    global players_next_base, is_safe
+    # print(is_safe, batter.touches(first_base))
+    print(is_safe, players_next_base)
+    if players_next_base == 0: # Running toward first
+        if batter.touches(first_base):
+            is_safe = True
+            players_next_base = 1
+            return
+    elif players_next_base == 1: # Running toward Second
+        if batter.touches(second_base):
+            is_safe = True
+            players_next_base = 2
+            return
+    elif players_next_base == 2: # running toward third
+        if batter.touches(third_base):
+            is_safe = True
+            players_next_base = 3
+            return
+    elif players_next_base == 3: # running home
+        if batter.touches(home_base):
+            is_safe = True
+            players_next_base = 0
+            metrics["runs"] += 1
+            return
 def batter_movement(keys):
     '''
     Allows the batter to run the bases, this function is called after the ball is hit
@@ -209,6 +241,7 @@ def batter_movement(keys):
         batter.x += 2
     if pygame.K_DOWN in keys:
         batter.y += 2
+    check_if_safe()
 def slider_movement(slider, speed_multiplier=1):
     '''
     Slider movement back and forth along the power or distance bar
@@ -283,7 +316,8 @@ def new_pitch():
     if I do say so myself. Call this when you want a new pitch to happen.
     :return:
     '''
-    global is_hit, is_new_at_bat, has_pressed_space_1, has_pressed_space_2, fielder_has_ball, is_double_play, is_foul_ball, has_swung
+    global is_hit, is_new_at_bat, has_pressed_space_1, has_pressed_space_2, \
+        fielder_has_ball, is_double_play, is_foul_ball, has_swung, is_safe
     if is_foul_ball:
         if metrics["strikes"] < 2:
             metrics["strikes"] += 1
@@ -295,6 +329,7 @@ def new_pitch():
     fielder_has_ball = False
     is_double_play = False
     has_swung = False
+    is_safe=False
     reset_fielder_positions()
     ball.x = pitcher.x
     ball.y = pitcher.y
@@ -461,7 +496,7 @@ def animate_hit(keys, power, direction):
     # TODO : Scoring runs
     # TODO : Base Running
     # TODO : Keeping track of strikes
-    # TODO : keep track of outs
+    # TODO : keep track of outs if the defense tags the plate
     global is_hit, is_new_at_bat, need_to_reset, players_next_base, angle
     camera.clear("black")
     if not fielder_has_ball:
@@ -542,17 +577,9 @@ def tick(keys):
 
     else:
         animate_pitch(keys, pitch_speed)
-
-
-
-
     # defense(fielders)
-
-
     # Cursor location used for game creation
     # if frames % 10 == 0:
     #     print(pygame.mouse.get_pos())
-
-
 
 gamebox.timer_loop(45, tick)
