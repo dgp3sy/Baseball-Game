@@ -34,6 +34,10 @@ left_field = gamebox.from_image(37, 25, "player_img.png")
 center_field=gamebox.from_image(252, 10, "player_img.png")
 right_field=gamebox.from_image(475, 25, "player_img.png")
 
+team_img_map = {
+    64 : "player_img_green.png", 128 : "player_img_blue.png", 192 : "player_img_orange.png", 256 : "player_img_purple.png",
+    320 : "player_img_red.png", 384 : "player_img_cyan.png", 448 : "player_img_yellow.png"
+}
 
 players = [
     batter, pitcher, catcher,
@@ -74,7 +78,6 @@ is_double_play=False
 is_foul_ball = False
 has_swung=False
 is_safe = False
-players_next_base=1
 # metrics for game
 outs = 0
 strikes = 0
@@ -102,6 +105,15 @@ slider_speed = 3
 has_pressed_space_1=False
 has_pressed_space_2=False
 
+def assign_player_img(indx):
+    '''
+    Given an index of the team selection, assigns the appropriate image to the team
+    :param indx: Numeric value that corresponds to image selection
+    :return: None, changes the attribute of player images
+    '''
+    for player in players:
+        player.image = team_img_map[indx]
+    batter.image = "player_img.png"
 def handle_metrics():
     '''
     Determines metrics of the games including: strokes, outs, innings, balls. If they reach a certain threshorld, the
@@ -204,7 +216,6 @@ def move_toward(leader, follower, speed):
 def check_if_safe():
     global players_next_base, is_safe
     # print(is_safe, batter.touches(first_base))
-    print(is_safe, players_next_base)
     if players_next_base == 0: # Running toward first
         if batter.touches(first_base):
             is_safe = True
@@ -394,6 +405,11 @@ def defense_based_on_ball_location():
             new_pitch()
             if not on_base[players_next_base]:
                 metrics["outs"] += 1
+def new_solo_play(player_making_play, base=first_base):
+    global fielder_has_ball
+    move_toward(ball, player_making_play, 1)
+    if player_making_play.touches(ball):
+        fielder_has_ball=True
 def new_play(player_getting_ball, player_getting_base, base=first_base, is_double=False):
     '''
     Defines movement of players while the ball is in play
@@ -462,7 +478,8 @@ def defense_based_on_angle(a):
         elif 105 <= a < 130:
             new_play(right_field, first_base_player)
         elif 130 <= a < 150:
-            new_play(right_field, first_base_player)
+            # new_play(right_field, first_base_player)
+            new_solo_play(first_base_player)
         if a >= 150:  #  right tip foul - don't do anything
             is_foul_ball = True
 
@@ -497,7 +514,7 @@ def animate_hit(keys, power, direction):
     # TODO : Base Running
     # TODO : Keeping track of strikes
     # TODO : keep track of outs if the defense tags the plate
-    global is_hit, is_new_at_bat, need_to_reset, players_next_base, angle
+    global is_hit, is_new_at_bat, need_to_reset, players_next_base, angle, is_safe
     camera.clear("black")
     if not fielder_has_ball:
         angle = hit_ball(power, direction)
@@ -547,11 +564,12 @@ def animate_pitch(keys, pitch_speed):
         # hit_frames=0
         animate_hit(keys, power_slider.x, distance_slider.x)
     camera.display()
-def tick(keys):
+def tick(keys, team_selection):
     '''
     Main tick function first called by the timer loop. This function allows the user to hit the scroll bar to determine
     the power and direction the ball will come off the bat
     :param keys: user input
+    :param team_selection: number that is used to map the team the user selected with the correct player image to load
     :return:
     '''
     global frames, is_pitch, catcher_has_ball, is_return_pitch, pitcher_has_ball, hit_power, is_new_at_bat, pitch_speed
@@ -581,5 +599,47 @@ def tick(keys):
     # Cursor location used for game creation
     # if frames % 10 == 0:
     #     print(pygame.mouse.get_pos())
+game_on = False
+pointer = gamebox.from_color(256, 375, "white", 30, 5)
+color_map = {
+    64 : "black", 128 : "blue", 192 : "orange", 256 : "purple", 320 : "red", 384 : "cyan", 448 : "yellow"
+}
+team_name_map = {
+    64 : "Oakland Athletics", 128 : "Chicago Cubs", 192 : "Houston Astros", 256 : "Colorado Rockies",
+    320 : "Boston Red Sox", 384 : "Miami Marlins", 448 : "Pittsburgh Pirates"
+}
+start_screen_items = [
+    gamebox.from_text(256, 20, "Bases Loaded", 36, "white"),
+    gamebox.from_image(256, 175, "start_screen_player.png"),
+    gamebox.from_text(256, 300, "Select Team Color:", 18, "white"),
+    gamebox.from_color(64, 350, "green", 30, 30),
+    gamebox.from_color(120.5, 350, "blue", 15, 30),
+    gamebox.from_color(135.5, 350, "red", 15, 30),
+    gamebox.from_color(192, 350, "orange", 30, 30),
+    gamebox.from_color(256, 350, "purple", 30, 30),
+    gamebox.from_color(320, 350, "red", 30, 30),
+    gamebox.from_color(384, 350, "cyan", 30, 30),
+    gamebox.from_color(448, 350, "yellow", 30, 30),
+    pointer
+]
+start_screen_items[1].scale_by(0.9)
+def start_screen(keys):
+    global game_on
+    if not game_on:
+        camera.clear("dark green")
+        draw_list(start_screen_items)
+        if pygame.K_SPACE in keys:
+            assign_player_img(pointer.x)
+            game_on = True
+        if pygame.K_RIGHT in keys and pointer.x < 448:
+                pointer.x += 64
+        if pygame.K_LEFT in keys and pointer.x > 64:
+                pointer.x -= 64
+        camera.draw(gamebox.from_text(256, 400, team_name_map[pointer.x], 18, "white"))
+        camera.display()
+    if game_on:
+        tick(keys, pointer.x)
 
-gamebox.timer_loop(45, tick)
+
+
+gamebox.timer_loop(45, start_screen)
